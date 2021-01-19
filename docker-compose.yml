@@ -1,0 +1,42 @@
+version: "3.5"
+
+networks:
+  partenuppnet:
+
+services:
+   ddb:
+     image: mysql:8
+     environment:
+      - MYSQL_ROOT_PASSWORD=miaomiao
+      - MYSQL_DATABASE=partenopea
+#      - MYSQL_USER=nuovo
+#      - MYSQL_PASSWORD=miaomiao
+     ports:
+      - "3306"
+     networks:
+      - partenuppnet
+
+
+
+   partenupp:
+     image: partenuppdocker
+     build:
+       context: .
+       dockerfile: Dockerfile
+     ports:
+       - "8080:8080"
+     depends_on:
+      - ddb
+     restart: on-failure
+     networks:
+       - partenuppnet
+
+#     environment:
+#         - DATABASE_HOST=databasepartenopea
+#         - DATABASE_USER=nuovo
+#         - DATABASE_PASSWORD=miaomiao
+#         - DATABASE_NAME=partenopea
+#         - DATABASE_PORT=3306
+
+
+
