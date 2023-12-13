@@ -2,7 +2,6 @@ package com.petroli.gestionefasipetroli.controllers;
 
 import com.petroli.gestionefasipetroli.dto.Viaggio;
 import com.petroli.gestionefasipetroli.entities.*;
-import com.petroli.gestionefasipetroli.services.ClienteService;
 import com.petroli.gestionefasipetroli.services.PuntiVenditaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -12,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.*;
@@ -35,6 +33,8 @@ public class PdfController {
 
     private final String templatepreventivo = "preventivo.html";
 
+    private final String templatepreventivoallservito = "preventivoallservito.html";
+
     private final String templatetrasporto = "trasporto.html";
 
     @PostMapping("preventivo")
@@ -42,9 +42,17 @@ public class PdfController {
 
         Context ctx = new Context();
 
-        compilacontextpreventivo(ctx,preventivo);
+        String processedHtml;
 
-        String processedHtml = templateEngine.process(templatepreventivo, ctx);
+        if(preventivo.getRiferimento().getPuntoVendita().isAllservito()) {
+            compilacontextpreventivoallservito(ctx, preventivo);
+
+             processedHtml = templateEngine.process(templatepreventivoallservito, ctx);
+        }else{
+            compilacontextpreventivo(ctx, preventivo);
+
+             processedHtml = templateEngine.process(templatepreventivo, ctx);
+        }
 
         String filename = compilanomeptrventivo(preventivo);
 
@@ -61,7 +69,6 @@ public class PdfController {
             renderer.layout();
             renderer.createPDF(os, false);
             renderer.finishPDF();
-            System.out.println("PDF creato");
             result = os.toByteArray();
         }
         catch (Exception e){
@@ -105,11 +112,165 @@ public class PdfController {
     }
 
 
-    private void compilacontextpreventivo(Context context, Preventivo preventivo){
+    private void compilacontextpreventivoallservito(Context context, Preventivo preventivo){
+
+
         context.setVariable("nomecliente" , preventivo.getNomecliente());
         context.setVariable("nomepuntovendita" , preventivo.getRiferimento().getPuntoVendita().getNome());
 
-        Date data = preventivo.getData();
+        Date data = preventivo.getRiferimento().getData();
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+        context.setVariable("data" , format.format(data));
+
+
+
+        List<Rigapreventivo> listarighe = new LinkedList<>();
+
+        Rigapreventivo riga1 = new Rigapreventivo();
+        Cliente cliente = puntiVenditaService.cercaproprietario(preventivo.getRiferimento().getPuntoVendita());
+        context.setVariable("pivacliente" , cliente.getPartitaiva());
+        String indirizzo = preventivo.getRiferimento().getPuntoVendita().getVia();
+        context.setVariable("indirizzo" , indirizzo);
+
+
+  //      double gasolioself = preventivo.getPrezzoalpubblicogasolioself();
+        double gasolioservito = preventivo.getPrezzoalpubblicogasolioservito();
+  //      double marginegasolioself = cliente.getMarginegasolioself();
+        double marginegasolioservito = cliente.getMarginegasolioservito();
+
+  //      double benzinaself = preventivo.getPrezzoalpubblicobenzinaself();
+        double benzinaservito = preventivo.getPrezzoalpubblicobenzinaservito();
+  //      double marginebenzinaself = cliente.getMarginebenzinaself();
+        double marginebenzinaservito = cliente.getMarginebenzinaservito();
+
+  //      double supremeself = preventivo.getPrezzoalpubblicosupremeself();
+        double supremeservito = preventivo.getPrezzoalpubblicosupremeservito();
+  //      double marginesupremeself = cliente.getMarginesupremeself();
+        double marginesupremeservito = cliente.getMarginesupremeservito();
+
+        double gplservito = preventivo.getPrezzoalpubblicogplservito();
+        double marginegpl = cliente.getMarginegplservito();
+
+  //      context.setVariable("prezzogasolioself" , gasolioself);
+        context.setVariable("prezzogasolioservito" , gasolioservito);
+
+        context.setVariable("marginegasolioservito" , marginegasolioservito);
+  //      context.setVariable("marginegasolioself" , marginegasolioself);
+
+        context.setVariable("prezzobenzinaservito" , benzinaservito);
+  //      context.setVariable("prezzobenzinaself" , benzinaself);
+
+        context.setVariable("marginebenzinaservito" , marginebenzinaservito);
+  //      context.setVariable("marginebenzinaself" , marginebenzinaself);
+
+   //     context.setVariable("prezzosupremeself" , supremeself);
+        context.setVariable("prezzosupremeservito" , supremeservito);
+
+    //    context.setVariable("marginesupremeself" , marginesupremeself);
+        context.setVariable("marginesupremeservito" , marginesupremeservito);
+
+        context.setVariable("prezzogpl" , gplservito);
+        context.setVariable("marginegpl" , marginegpl);
+
+
+
+        double prezzolitro;
+
+        if(preventivo.getRiferimento().getGasolio()>0){
+            //GASOLIO
+            riga1.descrizione = "GASOLIO";
+            riga1.qta = preventivo.getRiferimento().getGasolio();
+            prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicogasolioservito(), cliente.getMarginegasolioservito(), preventivo.getMarginecessionegasolio());
+            prezzolitro = arrotondaallaterzacifra(prezzolitro);
+            riga1.prezzolitro = arrotondaallaterzacifra(prezzolitro);
+            riga1.imposta = 22;
+            riga1.valore = arrotondavalore(prezzolitro * riga1.qta);
+            riga1.totale = arrotondavalore(riga1.valore * 1.22);
+            listarighe.add(copiariga(riga1));
+            riga1 = new Rigapreventivo();
+        }
+
+        if(preventivo.getRiferimento().getBenzina()>0){
+            //GASOLIO
+            riga1.descrizione = "BENZINA";
+            riga1.qta = preventivo.getRiferimento().getBenzina();
+            prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicobenzinaservito(), cliente.getMarginebenzinaservito(), preventivo.getMarginecessionebenzina());
+            prezzolitro = arrotondaallaterzacifra(prezzolitro);
+            riga1.prezzolitro = arrotondaallaterzacifra(prezzolitro);
+            riga1.imposta = 22;
+            riga1.valore = arrotondavalore(prezzolitro * riga1.qta);
+            riga1.totale = arrotondavalore(riga1.valore * 1.22);
+            listarighe.add(copiariga(riga1));
+            riga1 = new Rigapreventivo();
+        }
+
+        if(preventivo.getRiferimento().getSupreme()>0){
+            //GASOLIO
+            riga1.descrizione = "SUPREME";
+            riga1.qta = preventivo.getRiferimento().getSupreme();
+            prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicosupremeservito(), cliente.getMarginesupremeservito(), preventivo.getMarginecessionesupreme());
+            prezzolitro = arrotondaallaterzacifra(prezzolitro);
+            riga1.prezzolitro = arrotondaallaterzacifra(prezzolitro);
+            riga1.imposta = 22;
+            riga1.valore = arrotondavalore(prezzolitro * riga1.qta);
+            riga1.totale = arrotondavalore(riga1.valore * 1.22);
+            listarighe.add(copiariga(riga1));
+            riga1 = new Rigapreventivo();
+        }
+
+        if(preventivo.getRiferimento().getGpl()>0){
+            //GASOLIO
+            riga1.descrizione = "GPL";
+            riga1.qta = preventivo.getRiferimento().getGpl();
+            prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicogplservito(), cliente.getMarginegplservito(), preventivo.getMarginecessionegpl());
+            prezzolitro = arrotondaallaterzacifra(prezzolitro);
+            riga1.prezzolitro = arrotondaallaterzacifra(prezzolitro);
+            riga1.imposta = 22;
+            riga1.valore = arrotondavalore(prezzolitro * riga1.qta);
+            riga1.totale = arrotondavalore(riga1.valore * 1.22);
+            listarighe.add(copiariga(riga1));
+        }
+
+
+
+        context.setVariable("righepreventivo" , listarighe);
+
+        double totalesenzaiva = calcolatotalepreventivosenzaiva(listarighe);
+        double totale = calcolatotalepreventivo(listarighe);
+
+        totale = arrotondavalore(totale);
+
+        double totaleapagare = totale;
+
+        for(VoceDiRettificaConValore voce : preventivo.getListavocidirettifica()){
+            if(voce.isSegno()){
+                totaleapagare += voce.getValore();
+            }else{
+                totaleapagare -= voce.getValore();
+            }
+        }
+
+        totaleapagare = arrotondavalore(totaleapagare);
+
+        context.setVariable("listavocidirettifica" , preventivo.getListavocidirettifica());
+
+        context.setVariable("totalesenzaiva" , totalesenzaiva);
+        context.setVariable("totale" , totale);
+        context.setVariable("totaleapagare" , totaleapagare);
+
+
+
+    }
+
+
+    private void compilacontextpreventivo(Context context, Preventivo preventivo){
+
+
+
+        context.setVariable("nomecliente" , preventivo.getNomecliente());
+        context.setVariable("nomepuntovendita" , preventivo.getRiferimento().getPuntoVendita().getNome());
+
+        Date data = preventivo.getRiferimento().getData();
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
         context.setVariable("data" , format.format(data));
 
@@ -126,22 +287,42 @@ public class PdfController {
 
         double gasolioself = preventivo.getPrezzoalpubblicogasolioself();
         double gasolioservito = preventivo.getPrezzoalpubblicogasolioservito();
+        double marginegasolioself = cliente.getMarginegasolioself();
+        double marginegasolioservito = cliente.getMarginegasolioservito();
 
         double benzinaself = preventivo.getPrezzoalpubblicobenzinaself();
         double benzinaservito = preventivo.getPrezzoalpubblicobenzinaservito();
+        double marginebenzinaself = cliente.getMarginebenzinaself();
+        double marginebenzinaservito = cliente.getMarginebenzinaservito();
 
         double supremeself = preventivo.getPrezzoalpubblicosupremeself();
         double supremeservito = preventivo.getPrezzoalpubblicosupremeservito();
+        double marginesupremeself = cliente.getMarginesupremeself();
+        double marginesupremeservito = cliente.getMarginesupremeservito();
 
         double gplservito = preventivo.getPrezzoalpubblicogplservito();
+        double marginegpl = cliente.getMarginegplservito();
 
         context.setVariable("prezzogasolioself" , gasolioself);
         context.setVariable("prezzogasolioservito" , gasolioservito);
+
+        context.setVariable("marginegasolioservito" , marginegasolioservito);
+        context.setVariable("marginegasolioself" , marginegasolioself);
+
         context.setVariable("prezzobenzinaservito" , benzinaservito);
         context.setVariable("prezzobenzinaself" , benzinaself);
+
+        context.setVariable("marginebenzinaservito" , marginebenzinaservito);
+        context.setVariable("marginebenzinaself" , marginebenzinaself);
+
         context.setVariable("prezzosupremeself" , supremeself);
         context.setVariable("prezzosupremeservito" , supremeservito);
+
+        context.setVariable("marginesupremeself" , marginesupremeself);
+        context.setVariable("marginesupremeservito" , marginesupremeservito);
+
         context.setVariable("prezzogpl" , gplservito);
+        context.setVariable("marginegpl" , marginegpl);
 
 
 
@@ -372,7 +553,6 @@ public class PdfController {
             renderer.layout();
             renderer.createPDF(os, false);
             renderer.finishPDF();
-            System.out.println("PDF creato");
             result = os.toByteArray();
         }
         catch (Exception e){
@@ -424,6 +604,7 @@ public class PdfController {
 
             RigaTrasporto rigacurr = new RigaTrasporto();
             rigacurr.setCodicedestinazione(t.getFabbisogno().getPuntoVendita().getCodicedestinazione());
+            rigacurr.setIndirizzo(t.getFabbisogno().getPuntoVendita().getVia() + " - " + t.getFabbisogno().getPuntoVendita().getCitta());
             rigacurr.setNomepuntovendita(c.getNomecliente());
             rigacurr.setPartitaiva(c.getPartitaiva());
             rigacurr.setBenzina(t.getFabbisogno().getBenzina());
@@ -449,6 +630,7 @@ public class PdfController {
         private String codicedestinazione;
         private String nomepuntovendita;
         private String partitaiva;
+        private String indirizzo;
         private double benzina;
         private double gasolio;
         private double supreme;
@@ -477,6 +659,10 @@ public class PdfController {
             return nomepuntovendita;
         }
 
+        public String getIndirizzo() {
+            return indirizzo;
+        }
+
         public void setSupreme(double supreme) {
             this.supreme = supreme;
         }
@@ -501,7 +687,9 @@ public class PdfController {
             this.nomepuntovendita = nomepuntovendita;
         }
 
-
+        public void setIndirizzo(String indirizzo) {
+            this.indirizzo = indirizzo;
+        }
     }
 
 }

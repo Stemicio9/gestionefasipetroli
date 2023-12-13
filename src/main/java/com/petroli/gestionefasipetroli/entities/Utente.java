@@ -3,6 +3,7 @@ package com.petroli.gestionefasipetroli.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 @Entity
 public class Utente {
@@ -18,6 +19,9 @@ public class Utente {
 
     // 0 = ADMIN , 1 = VIEWER, 2 = CLIENTE
     private int ruolo;
+
+    @OneToOne
+    private Cliente cliente;
 
 
     public Utente(){
@@ -56,6 +60,10 @@ public class Utente {
         return passwordinchiaro;
     }
 
+    public Cliente getCliente() {
+        return cliente;
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -71,5 +79,9 @@ public class Utente {
 
     public void setPasswordinchiaro(String passwordinchiaro) {
         this.passwordinchiaro = passwordinchiaro;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
 }

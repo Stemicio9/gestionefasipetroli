@@ -1,11 +1,9 @@
 package com.petroli.gestionefasipetroli.dto;
 
-import com.petroli.gestionefasipetroli.entities.Fabbisogno;
-import com.petroli.gestionefasipetroli.entities.Preventivo;
-import com.petroli.gestionefasipetroli.entities.Riepilogo;
-import com.petroli.gestionefasipetroli.entities.Trasporto;
+import com.petroli.gestionefasipetroli.entities.*;
 
 import java.util.Date;
+import java.util.List;
 
 public class RiepilogoPerFrontend {
 
@@ -49,6 +47,8 @@ public class RiepilogoPerFrontend {
     private Date databonifico;
     private double importobonifico;
 
+    List<Bonifico> listabonifici;
+
 
     // Da Preventivo
     private double importopreventivo;
@@ -58,6 +58,8 @@ public class RiepilogoPerFrontend {
 
 
     private double totalevolumicarburantitradizionali;
+
+    private List<RiepilogoFile> files;
 
 
     public Trasporto getTrasporto() {
@@ -145,12 +147,20 @@ public class RiepilogoPerFrontend {
         return databonifico;
     }
 
+    public List<RiepilogoFile> getFiles() {
+        return files;
+    }
+
     public double getPrezzogplfornitore() {
         return prezzogplfornitore;
     }
 
     public double getTotalevolumicarburantitradizionali() {
         return totalevolumicarburantitradizionali;
+    }
+
+    public List<Bonifico> getListabonifici() {
+        return listabonifici;
     }
 
     public void setTrasporto(Trasporto trasporto) {
@@ -245,6 +255,14 @@ public class RiepilogoPerFrontend {
         this.totalevolumicarburantitradizionali = totalevolumicarburantitradizionali;
     }
 
+    public void setListabonifici(List<Bonifico> listabonifici) {
+        this.listabonifici = listabonifici;
+    }
+
+    public void setFiles(List<RiepilogoFile> files) {
+        this.files = files;
+    }
+
     public Riepilogo toriepilogo(){
         Riepilogo result = new Riepilogo();
 
@@ -264,6 +282,10 @@ public class RiepilogoPerFrontend {
         result.setNumerofatturapartenopea(numerofatturapartenopea);
         result.setDatabonifico(databonifico);
         result.setImportobonifico(importobonifico);
+
+
+        result.setListabonifici(listabonifici);
+        result.setFiles(files);
 
         return result;
     }

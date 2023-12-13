@@ -69,6 +69,7 @@ public class TrasportoService {
         if(filter.getAtk() == null && filter.getBaseDiCarico() == null) return findallviaggiindata(filter.getData());
         if(filter.getBaseDiCarico() == null) return findallviaggidiatkindata(filter.getAtk(),filter.getData());
         if(filter.getAtk() == null) return findallviaggindataconbasedicarico(filter.getBaseDiCarico(),filter.getData());
+
         Set<Trasporto> result = new HashSet<>(findallbyatkanddateandbasedicarico(filter.getAtk(),filter.getData(),filter.getBaseDiCarico()));
         Viaggio darestituire = new Viaggio();
         darestituire.setListaviaggi(result);
@@ -110,12 +111,10 @@ public class TrasportoService {
     public Set<Viaggio> findallviaggindataconbasedicarico(BaseDiCarico base, Date data){
         Set<Atk> atkdiversi = prendilistadiatkindata(data);
         Set<Viaggio> result = new HashSet<>();
+        Set<BaseDiCarico> basidicarico = new HashSet<>();
+        basidicarico.add(base);
         for(Atk atk : atkdiversi){
-            Viaggio daaggiungere = new Viaggio();
-            daaggiungere.setListaviaggi(new HashSet<>(findallbyatkanddateandbasedicarico(atk,data,base)));
-            if(daaggiungere.getListaviaggi().size() > 0) {
-                result.add(daaggiungere);
-            }
+            unisciinbaseaidentificativo(atk, data, basidicarico, result);
         }
         return result;
     }
@@ -124,14 +123,41 @@ public class TrasportoService {
     public Set<Viaggio> findallviaggidiatkindata(Atk atk,Date data){
         Set<BaseDiCarico> basidicarico = prendibasidicaricodiverseindata(data);
         Set<Viaggio> result = new HashSet<>();
+        unisciinbaseaidentificativo(atk, data, basidicarico, result);
+        return result;
+    }
+
+    private void unisciinbaseaidentificativo(Atk atk, Date data, Set<BaseDiCarico> basidicarico, Set<Viaggio> result) {
         for(BaseDiCarico base : basidicarico){
-            Viaggio daaggiungere = new Viaggio();
-            daaggiungere.setListaviaggi(new HashSet<>(findallbyatkanddateandbasedicarico(atk,data,base)));
-            if(daaggiungere.getListaviaggi().size() > 0) {
-                result.add(daaggiungere);
+            List<Trasporto> listatrasporti = findallbyatkanddateandbasedicarico(atk,data,base);
+
+            Set<String> listaidentificativi = prendiidentificativiviaggiodiversi(listatrasporti);
+
+            for(String curr : listaidentificativi){
+                Viaggio daaggiungere = new Viaggio();
+                daaggiungere.setListaviaggi(new HashSet<>());
+
+                for(Trasporto t : listatrasporti){
+
+                    if(curr.equals("default")){
+                        if(t.getIdentificativoviaggio() == null){
+                            daaggiungere.getListaviaggi().add(t);
+                        }
+                    }else{
+
+                        if(t.getIdentificativoviaggio() != null) {
+                            if (t.getIdentificativoviaggio().equals(curr)) {
+                                daaggiungere.getListaviaggi().add(t);
+                            }
+                        }
+                    }
+                }
+
+                if(daaggiungere.getListaviaggi().size() > 0) {
+                    result.add(daaggiungere);
+                }
             }
         }
-        return result;
     }
 
     public Set<Viaggio> findallviaggiindata(Date data){
@@ -141,12 +167,18 @@ public class TrasportoService {
         Set<Viaggio> result = new HashSet<>();
 
         for(Atk atk : atkdiversi){
-            for(BaseDiCarico base : basidicarico){
-                Viaggio daaggiungere = new Viaggio();
-                daaggiungere.setListaviaggi(new HashSet<>(findallbyatkanddateandbasedicarico(atk,data,base)));
-                if(daaggiungere.getListaviaggi().size() > 0) {
-                    result.add(daaggiungere);
-                }
+            unisciinbaseaidentificativo(atk, data, basidicarico, result);
+        }
+        return result;
+    }
+
+    private Set<String> prendiidentificativiviaggiodiversi(List<Trasporto> listatrasporti){
+        Set<String> result = new HashSet<>();
+        for(Trasporto curr : listatrasporti){
+            if(curr.getIdentificativoviaggio() == null){
+                result.add("default");
+            }else {
+                result.add(curr.getIdentificativoviaggio());
             }
         }
         return result;

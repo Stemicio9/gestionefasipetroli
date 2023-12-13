@@ -26,6 +26,8 @@ public class Trasporto {
 
     private String nometrasportatore;
 
+    private String identificativoviaggio;
+
 
     public long getId() {
         return id;
@@ -53,6 +55,10 @@ public class Trasporto {
 
     public String getNometrasportatore() {
         return nometrasportatore;
+    }
+
+    public String getIdentificativoviaggio() {
+        return identificativoviaggio;
     }
 
     public void setNometrasportatore(String nometrasportatore) {
@@ -83,6 +89,9 @@ public class Trasporto {
         this.rimorchio = rimorchio;
     }
 
+    public void setIdentificativoviaggio(String identificativoviaggio) {
+        this.identificativoviaggio = identificativoviaggio;
+    }
 
     @Override
     public int hashCode() {

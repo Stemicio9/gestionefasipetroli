@@ -1,11 +1,9 @@
 package com.petroli.gestionefasipetroli.entities;
 
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 
 @Entity
@@ -43,6 +41,12 @@ public class Riepilogo {
     private Date databonifico;
     private double importobonifico;
 
+
+    @OneToMany(cascade = CascadeType.ALL)
+    List<Bonifico> listabonifici;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    List<RiepilogoFile> files;
 
 
     public Riepilogo(){}
@@ -111,6 +115,14 @@ public class Riepilogo {
         return trasporto;
     }
 
+    public List<Bonifico> getListabonifici() {
+        return listabonifici;
+    }
+
+    public List<RiepilogoFile> getFiles() {
+        return files;
+    }
+
     public void setId(long id) {
         this.id = id;
     }
@@ -167,6 +179,11 @@ public class Riepilogo {
         this.trasporto = trasporto;
     }
 
+    public void setListabonifici(List<Bonifico> listabonifici) {
+        this.listabonifici = listabonifici;
+    }
 
-
+    public void setFiles(List<RiepilogoFile> files) {
+        this.files = files;
+    }
 }

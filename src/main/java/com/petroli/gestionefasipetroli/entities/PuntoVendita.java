@@ -27,6 +27,16 @@ public class PuntoVendita {
     @OneToMany(cascade = CascadeType.ALL)
     private List<VoceDiRettificaConValore> listavocidirettifica;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<QuotazioneGiornalieraPuntoVendita> quotazioni;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Concorrente> listaconcorrenti;
+
+    private String email;
+
+    private boolean allservito;
+
 
 
     public String getCap() {
@@ -61,6 +71,22 @@ public class PuntoVendita {
         return listavocidirettifica;
     }
 
+    public List<QuotazioneGiornalieraPuntoVendita> getQuotazioni() {
+        return quotazioni;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public List<Concorrente> getListaconcorrenti() {
+        return listaconcorrenti;
+    }
+
+    public boolean isAllservito() {
+        return allservito;
+    }
+
     public void setCap(String cap) {
         this.cap = cap;
     }
@@ -93,4 +119,34 @@ public class PuntoVendita {
     public void setListavocidirettifica(List<VoceDiRettificaConValore> listavocidirettifica) {
         this.listavocidirettifica = listavocidirettifica;
     }
+
+    public void setQuotazioni(List<QuotazioneGiornalieraPuntoVendita> quotazioni) {
+        this.quotazioni = quotazioni;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setAllservito(boolean allservito) {
+        this.allservito = allservito;
+    }
+
+    public void setListaconcorrenti(List<Concorrente> listaconcorrenti) {
+        this.listaconcorrenti = listaconcorrenti;
+    }
+
+    public Concorrente findconcorrentebyname(String nome){
+        for(Concorrente curr : listaconcorrenti){
+            try {
+                if (curr.getNomeconcorrente().equals(nome)) {
+                    return curr;
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
 }

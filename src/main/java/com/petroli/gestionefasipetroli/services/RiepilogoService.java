@@ -2,15 +2,20 @@ package com.petroli.gestionefasipetroli.services;
 
 import com.petroli.gestionefasipetroli.dto.DateRange;
 import com.petroli.gestionefasipetroli.dto.RiepilogoPerFrontend;
-import com.petroli.gestionefasipetroli.entities.Fabbisogno;
-import com.petroli.gestionefasipetroli.entities.Preventivo;
-import com.petroli.gestionefasipetroli.entities.Riepilogo;
-import com.petroli.gestionefasipetroli.entities.Trasporto;
+import com.petroli.gestionefasipetroli.entities.*;
+import com.petroli.gestionefasipetroli.repositories.BonificoRepository;
 import com.petroli.gestionefasipetroli.repositories.RiepilogoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class RiepilogoService {
@@ -27,11 +32,42 @@ public class RiepilogoService {
     @Autowired
     private TrasportoService trasportoService;
 
+    @Autowired
+    private BonificoRepository bonificoRepository;
+
+    @Autowired
+    private ClienteService clienteService;
+
+
+
+    public Riepilogo findriepilogobyid(long id){
+        return riepilogoRepository.findById(id);
+    }
 
     public List<Riepilogo> getallriepiloghiindaterange(DateRange range){
         List<Fabbisogno> listainrange = fabbisognoService.getindaterange(range);
         creariepiloghimancanti(listainrange);
         return riepilogoRepository.findAllByFabbisogno_DataBetween(range.getData1(),range.getData2());
+    }
+
+    public List<Riepilogo> getallriepiloghiindaterange(DateRange range, int page, int size){
+        List<Fabbisogno> listainrange = fabbisognoService.getindaterange(range);
+        creariepiloghimancanti(listainrange);
+        Pageable pageable =  PageRequest.of(page, size);
+        return riepilogoRepository.findAllByFabbisogno_DataBetween(range.getData1(),range.getData2(), pageable);
+    }
+
+
+    public List<Riepilogo> getallbycliente(Cliente cliente){
+
+        List<PuntoVendita> listapuntivendita = clienteService.getpuntivenditadiattivita(cliente.getIdcliente());
+        List<Riepilogo> result = new LinkedList<>();
+
+        for(PuntoVendita current : listapuntivendita){
+            result.addAll(riepilogoRepository.findAllByFabbisogno_PuntoVendita(current));
+        }
+
+        return result;
     }
 
     public boolean salvariepilogo(RiepilogoPerFrontend riepilogo){
@@ -103,5 +139,91 @@ public class RiepilogoService {
     }
 
 
+    public boolean aggiungibonifico(Bonifico bonifico, long idriepilogo){
+        Riepilogo riepilogo = findriepilogobyid(idriepilogo);
+        try{
+           riepilogo.getListabonifici().add(bonifico);
+           riepilogoRepository.save(riepilogo);
+           return true;
+        }catch(Exception e){
+           e.printStackTrace();
+           return false;
+        }
+    }
+
+
+    public boolean rimuovibonifico(Bonifico bonifico, long idriepilogo){
+        Riepilogo riepilogo = findriepilogobyid(idriepilogo);
+        try{
+            riepilogo.getListabonifici().remove(bonifico);
+            riepilogoRepository.save(riepilogo);
+            bonificoRepository.delete(bonifico);
+            return true;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    // per i file
+
+    @Autowired
+    RiepilogoFileService fileService;
+
+    public boolean aggiungifile(RiepilogoFile file, long idriepilogo){
+        Riepilogo riepilogo = findriepilogobyid(idriepilogo);
+        try{
+            riepilogo.getFiles().add(file);
+            riepilogoRepository.save(riepilogo);
+            return true;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean rimuovifile(long idriepilogo, long idfile){
+        RiepilogoFile file = fileService.getFile(idfile);
+        Riepilogo riepilogo = findriepilogobyid(idriepilogo);
+        try{
+            riepilogo.getFiles().remove(file);
+            riepilogoRepository.save(riepilogo);
+            return true;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Stream<RiepilogoFile> getTuttiFileDiRiepilogo(long idriepilogo){
+        return this.riepilogoRepository.findById(idriepilogo).getFiles().stream();
+    }
+
+
+
+
+
+    // METODO DI UTILITY
+    public String cambiatuttiiriepiloghiconlistabonifici(){
+        StringBuilder result = new StringBuilder();
+        DateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+        List<Riepilogo> tuttiriepiloghi = riepilogoRepository.findAll();
+        for(Riepilogo curr : tuttiriepiloghi){
+            try{
+                Bonifico nuovo = new Bonifico();
+                nuovo.setImportobonifico(curr.getImportobonifico());
+                nuovo.setDescrizione(format.format(curr.getDatabonifico()));
+                curr.getListabonifici().add(nuovo);
+                riepilogoRepository.save(curr);
+                result.append("AGGIUNTO");
+                result.append("\n");
+            }catch(Exception e){
+                result.append(e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        return result.toString();
+    }
 
 }

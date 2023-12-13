@@ -2,6 +2,7 @@ package com.petroli.gestionefasipetroli.controllers;
 
 
 import com.petroli.gestionefasipetroli.entities.Utente;
+import com.petroli.gestionefasipetroli.repositories.ImpostazioniRepository;
 import com.petroli.gestionefasipetroli.services.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +17,20 @@ public class UtenteController {
     @Autowired
     private UtenteService utenteService;
 
+    @Autowired
+    private RiepilogoController riepilogoController;
+
+
 
     @GetMapping("creautentedefault")
     public List<Utente> creautentedefault(){
         return creautente("admin" , "Partenopea2021" , 0);
+    }
+
+
+    @GetMapping("aggiornabonifici")
+    public String aggiornalistabonifici(){
+        return riepilogoController.inseriscituttoinlistabonifici();
     }
 
     @GetMapping("creautente/{username}/{password}/{ruolo}")

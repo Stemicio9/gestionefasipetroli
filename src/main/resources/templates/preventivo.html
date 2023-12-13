@@ -32,6 +32,12 @@
         border-collapse: collapse; /* removes gap between cells */
     }
 
+
+    .collassabordi {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
      .mytd {
         border-right: 1px solid #1b1a39;
     }
@@ -65,12 +71,33 @@
         border-bottom: solid 2px #1b1a39;
     }
 
+    .importobonificotab {
+        font-weight: bold;
+        /*  background-color: #1b1a39; */
+        background-color: #ffde00;
+        color: #1b1a39;
+        border-bottom: solid 2px #1b1a39;
+    }
+
+    .thinterno {
+        font-weight: bold;
+        background-color: #1b1a39;
+        color: #ffffff;
+    }
+
+
+    .sfondoblu {
+        font-weight: bold;
+        background-color: #1b1a39;
+        color: #ffffff;
+    }
+
     /* cell padding */
     .table th, td {
-        padding-left: 2px;
+        padding-left: 5px;
         padding-top: 3px;
         padding-bottom: 3px;
-        padding-right: 2px;
+        padding-right: 5px;
     }
 
 
@@ -136,23 +163,24 @@
   <table class="table tabellasopra" style="margin-top: 10px">
       <thead>
       <tr>
-          <th>Intestazione</th>
-          <th>Generali</th>
-          <th>Data</th>
+          <th>Dati Cliente</th>
+          <th>Punto Vendita</th>
+        <!--  <th>Data</th> -->
       </tr>
       </thead>
       <tr>
            <td class="mytd">
               <h5 th:text="${nomecliente}"></h5>
-               <h5 th:text="${nomepuntovendita}"></h5>
+               <h5 th:text="${pivacliente}"></h5>
+
            </td>
            <td class="mytd">
-               <h5 th:text="${pivacliente}"></h5>
+               <h5 th:text="${nomepuntovendita}"></h5>
                <h5 th:text="${indirizzo}"></h5>
            </td>
-           <td>
+        <!--   <td>
                <h5 th:text="${data}"></h5>
-           </td>
+           </td>  -->
       </tr>
 
 
@@ -160,116 +188,157 @@
   </table>
 
 
+ <table style="width: 100%;">
+     <tr >
+         <th colspan="4" style="text-align: start">
 
+         </th>
 
-          <table class="table pagebreak" style="margin-top: 40px">
-              <thead>
-              <tr>
-                  <th>Prodotto</th>
-                  <th>Quantità</th>
+         <th colspan="2" style="text-align: center">
+            <!-- <h3>Prezzi al pubblico consigliati</h3> -->
+             <h3 th:text="'Riepilogo per consegna del ' + ${data}"></h3>
+         </th>
 
-                  <th>Prezzo al litro</th>
-                  <th>Imponibile</th>
-                  <th>Aliquota</th>
-                  <th>Totale</th>
-              </tr>
-              </thead>
-              <tr th:each="riga: ${righepreventivo}">
+         <th colspan="4" style="text-align: start">
 
-                  <td><b th:text="${riga.descrizione}"></b> </td>
-                  <td th:text="${riga.qta}" />
-                  <td th:text="${riga.prezzolitro} + ' €'" />
-                  <td th:text="${riga.valore} + ' €'" />
-                  <td th:text="${riga.imposta}" />
-                  <td th:text="${riga.totale} + ' €'" />
-              </tr>
-
-              <tr>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-              </tr>
-
-
-              <tr>
-                  <td>  </td>
-                  <td>  </td>
-                  <td>  </td>
-                  <td>Totale imponibile</td>
-                  <td> </td>
-                  <td> Totale</td>
-              </tr>
-
-              <tr>
-                  <td>  </td>
-                  <td>  </td>
-                  <td>  </td>
-                  <td th:text="${totalesenzaiva} + ' €'" />
-                  <td> </td>
-                  <td><b th:text="${totale} + ' €'"></b></td>
-              </tr>
-
-              <tr>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-                  <td>
-                      <hr />
-                  </td>
-              </tr>
-
-
-              <tr th:each="voce: ${listavocidirettifica}">
-
-                  <td><b th:text="${voce.vocedirettifica}"></b> </td>
-                  <td>  </td>
-                  <td>  </td>
-                  <td>  </td>
-                  <td>  </td>
-                  <td th:if="${voce.segno}" th:text="${voce.valore} + ' €'" />
-                  <td th:if="${!voce.segno}" th:text="'-' + ${voce.valore} + ' €'" />
-              </tr>
-
-
-              <tr>
-                  <td>  </td>
-                  <td>  </td>
-                  <td>  </td>
-                  <td>  </td>
-                  <td> Totale a pagare </td>
-                  <td><b th:text="${totaleapagare} + ' €'"></b></td>
-              </tr>
+         </th>
+     </tr>
+ </table>
 
 
 
-          </table>
+
+ <table class="table" style="margin-top: 10px">
+     <thead>
+     <tr>
+         <th th:if="${prezzogasolioself &gt; 0}">Gasolio</th>
+         <th th:if="${prezzobenzinaself &gt; 0}">Benzina</th>
+         <th th:if="${prezzosupremeself &gt; 0}">Supreme</th>
+         <th th:if="${prezzogpl &gt; 0}">GPL</th>
+     </tr>
+     </thead>
+     <tr>
+         <td th:if="${prezzogasolioself &gt; 0}" class="mytd">
+             <table>
+                 <thead>
+                 <tr>
+                     <th th:if="${prezzogasolioself &gt; 0}">Prezzo al Pubblico Self</th>
+                     <th th:if="${prezzogasolioservito &gt; 0}">Prezzo al Pubblico Servito</th>
+                 </tr>
+                 </thead>
+                 <tr>
+                     <!--${#numbers.formatDecimal(abc.value, 0, 'COMMA', 2, 'POINT')} -->
+                     <td th:if="${prezzogasolioself &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(prezzogasolioself,1,'POINT',3,'COMMA')}"></h5>    </td>
+                     <td th:if="${prezzogasolioservito &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(prezzogasolioservito,1,'POINT',3,'COMMA')}"></h5>   </td>
+                 </tr>
+
+                 <tr>
+                     <th class="thinterno" th:if="${prezzogasolioself &gt; 0}">Margine Contratto Self</th>
+                     <th class="thinterno" th:if="${prezzogasolioservito &gt; 0}">Margine Contratto Servito</th>
+                 </tr>
+
+                 <tr>
+                     <!--${#numbers.formatDecimal(abc.value, 0, 'COMMA', 2, 'POINT')} -->
+                     <td th:if="${prezzogasolioself &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(marginegasolioself,1,'POINT',3,'COMMA')}"></h5>    </td>
+                     <td th:if="${prezzogasolioservito &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(marginegasolioservito,1,'POINT',3,'COMMA')}"></h5>   </td>
+                 </tr>
+
+             </table>
+
+
+         </td>
+         <td th:if="${prezzobenzinaself &gt; 0}" class="mytd">
+
+             <table>
+                 <thead>
+                 <tr>
+                     <th th:if="${prezzobenzinaself &gt; 0}">Prezzo al Pubblico Self</th>
+                     <th th:if="${prezzobenzinaservito &gt; 0}">Prezzo al Pubblico Servito</th>
+                 </tr>
+                 </thead>
+
+                 <tr>
+                     <td th:if="${prezzobenzinaself &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(prezzobenzinaself,1,'POINT',3,'COMMA')}"></h5>    </td>
+                     <td th:if="${prezzobenzinaservito &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(prezzobenzinaservito,1,'POINT',3,'COMMA')}"></h5>   </td>
+                 </tr>
+                 <tr>
+                     <th class="thinterno" th:if="${prezzobenzinaself &gt; 0}">Margine Contratto Self</th>
+                     <th class="thinterno" th:if="${prezzobenzinaservito &gt; 0}">Margine Contratto Servito</th>
+
+                 </tr>
+                 <tr>
+                     <td th:if="${prezzobenzinaself &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(marginebenzinaself,1,'POINT',3,'COMMA')}"></h5>    </td>
+                     <td th:if="${prezzobenzinaservito &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(marginebenzinaservito,1,'POINT',3,'COMMA')}"></h5>   </td>
+                 </tr>
+             </table>
+
+         </td>
+         <td th:if="${prezzosupremeself &gt; 0}" class="mytd">
+
+             <table>
+                 <thead>
+                 <tr>
+                     <th th:if="${prezzosupremeself &gt; 0}">Prezzo al Pubblico Self</th>
+                     <th th:if="${prezzosupremeservito &gt; 0}">Prezzo al Pubblico Servito</th>
+                 </tr>
+                 </thead>
+                 <tr>
+                     <td th:if="${prezzosupremeself &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(prezzosupremeself,1,'POINT',3,'COMMA')}"></h5>    </td>
+                     <td th:if="${prezzosupremeservito &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(prezzosupremeservito,1,'POINT',3,'COMMA')}"></h5>   </td>
+                 </tr>
+                 <tr>
+                     <th class="thinterno" th:if="${prezzosupremeself &gt; 0}">Margine Contratto Self</th>
+                     <th class="thinterno" th:if="${prezzosupremeservito &gt; 0}">Margine Contratto Servito</th>
+
+                 </tr>
+                 <tr>
+                     <td th:if="${prezzosupremeself &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(marginesupremeself,1,'POINT',3,'COMMA')}"></h5>    </td>
+                     <td th:if="${prezzosupremeservito &gt; 0}">   <h5 th:text="${#numbers.formatDecimal(marginesupremeservito,1,'POINT',3,'COMMA')}"></h5>   </td>
+                 </tr>
+             </table>
+
+         </td>
+         <td th:if="${prezzogpl &gt; 0}" class="mytd">
+
+             <table>
+                 <thead>
+                 <tr>
+                  <th>Prezzo al Pubblico Servito</th>
+                 </tr>
+                 </thead>
+
+                 <tr>
+                     <td>     <h5 th:text="${#numbers.formatDecimal(prezzogpl,1,'POINT',3,'COMMA')}"></h5>   </td>
+
+                 </tr>
+
+                 <tr>
+                     <th class="thinterno">Margine Contratto Servito</th>
+
+                 </tr>
+
+                 <tr>
+                     <td>     <h5 th:text="${#numbers.formatDecimal(marginegpl,1,'POINT',3,'COMMA')}"></h5>   </td>
+
+                 </tr>
+             </table>
+
+
+         </td>
+     </tr>
+
+ </table>
+
+
+
+ <table class="pagebreak">
+     <tr class="importobonificotab">
+
+         <td> Totale Importo Bonifico </td>
+         <td><b th:text="${#numbers.formatDecimal(totaleapagare,1,'POINT',2,'COMMA')} + ' €'"></b></td>
+
+     </tr>
+ </table>
 
 
 
@@ -299,7 +368,7 @@
          </th>
 
          <th colspan="2" style="text-align: center">
-             <h3>Prezzi al pubblico consigliati</h3>
+             <h3>Dettaglio Preventivo</h3>
          </th>
 
          <th colspan="4" style="text-align: start">
@@ -308,86 +377,126 @@
      </tr>
  </table>
 
- <table class="table" style="margin-top: 10px">
+
+
+
+ <table class="table collassabordi" style="margin-top: 40px">
      <thead>
      <tr>
-         <th th:if="${prezzogasolioself &gt; 0}">Gasolio</th>
-         <th th:if="${prezzobenzinaself &gt; 0}">Benzina</th>
-         <th th:if="${prezzosupremeself &gt; 0}">Supreme</th>
-         <th th:if="${prezzogpl &gt; 0}">GPL</th>
+         <th>Prodotto</th>
+         <th>Quantità</th>
+
+         <th>Prezzo SIVA/lt</th>
+         <th>Imponibile</th>
+         <th>Aliquota</th>
+         <th>Totale</th>
      </tr>
      </thead>
+     <tr th:each="riga: ${righepreventivo}">
+
+         <td><b th:text="${riga.descrizione}"></b> </td>
+         <td th:text="${#numbers.formatDecimal(riga.qta,1,'POINT',0,'COMMA')}" />
+         <td th:text="${riga.prezzolitro} + ' €'" />
+         <td th:text="${#numbers.formatDecimal(riga.valore,1,'POINT',2,'COMMA')} + ' €'" />
+         <td th:text="${riga.imposta}" />
+         <td th:text="${#numbers.formatDecimal(riga.totale,1,'POINT',2,'COMMA')} + ' €'" />
+     </tr>
+
      <tr>
-         <td th:if="${prezzogasolioself &gt; 0}" class="mytd">
-             <table>
-                 <thead>
-                   <tr>
-                       <th>Self</th>
-                       <th>Servito</th>
-                   </tr>
-                 </thead>
-                 <tr>
-                 <td>   <h5 th:text="${prezzogasolioself}"></h5>    </td>
-                 <td>   <h5 th:text="${prezzogasolioservito}"></h5>   </td>
-                 </tr>
-             </table>
-
-
+         <td>
+             <hr />
          </td>
-         <td th:if="${prezzobenzinaself &gt; 0}" class="mytd">
-
-             <table>
-                 <thead>
-                 <tr>
-                     <th>Self</th>
-                     <th>Servito</th>
-                 </tr>
-                 </thead>
-                 <tr>
-                 <td>   <h5 th:text="${prezzobenzinaself}"></h5>    </td>
-                 <td>   <h5 th:text="${prezzobenzinaservito}"></h5>   </td>
-                 </tr>
-             </table>
-
+         <td>
+             <hr />
          </td>
-         <td th:if="${prezzosupremeself &gt; 0}" class="mytd">
-
-             <table>
-                 <thead>
-                 <tr>
-                     <th>Self</th>
-                     <th>Servito</th>
-                 </tr>
-                 </thead>
-                 <tr>
-                 <td>   <h5 th:text="${prezzosupremeself}"></h5>    </td>
-                 <td>   <h5 th:text="${prezzosupremeservito}"></h5>   </td>
-                 </tr>
-             </table>
-
+         <td>
+             <hr />
          </td>
-         <td th:if="${prezzogpl &gt; 0}" class="mytd">
-
-             <table>
-                 <thead>
-                 <tr>
-
-                 </tr>
-                 </thead>
-                 <tr>
-                     <td>     <h5 th:text="${prezzogpl}"></h5>   </td>
-
-                 </tr>
-             </table>
-
-
+         <td>
+             <hr />
          </td>
+         <td>
+             <hr />
+         </td>
+         <td>
+             <hr />
+         </td>
+     </tr>
+
+
+     <tr>
+         <td>  </td>
+         <td>  </td>
+         <td>  </td>
+         <td>Totale imponibile</td>
+         <td> </td>
+         <td> Totale IVA Compresa</td>
+     </tr>
+
+     <tr>
+         <td>  </td>
+         <td>  </td>
+         <td>  </td>
+         <td th:text="${#numbers.formatDecimal(totalesenzaiva,1,'POINT',2,'COMMA')} + ' €'" />
+         <td> </td>
+         <td><b th:text="${#numbers.formatDecimal(totale,1,'POINT',2,'COMMA')} + ' €'"></b></td>
+     </tr>
+
+     <tr>
+         <td>
+             <hr />
+         </td>
+         <td>
+             <hr />
+         </td>
+         <td>
+             <hr />
+         </td>
+         <td>
+             <hr />
+         </td>
+         <td>
+             <hr />
+         </td>
+         <td>
+             <hr />
+         </td>
+     </tr>
+
+     <tr class="sfondoblu">
+         <td > Dettaglio Altre Partite </td>
+         <td>  </td>
+         <td>  </td>
+         <td>  </td>
+         <td>  </td>
+         <td>  </td>
+     </tr>
+
+
+     <tr th:each="voce: ${listavocidirettifica}">
+
+         <td><b th:text="${voce.vocedirettifica}"></b> </td>
+         <td> <b th:text="${voce.descrizione}"></b> </td>
+         <td>  </td>
+         <td>  </td>
+         <td>  </td>
+         <td th:if="${voce.segno}" th:text="${#numbers.formatDecimal(voce.valore,1,'POINT',2,'COMMA')} + ' €'" />
+         <td th:if="${!voce.segno}" th:text="'-' + ${#numbers.formatDecimal(voce.valore,1,'POINT',2,'COMMA')} + ' €'" />
+     </tr>
+
+
+     <tr class="importobonificotab">
+         <td>  </td>
+         <td>  </td>
+         <td>  </td>
+         <td>  </td>
+         <td> Totale Importo Bonifico </td>
+         <td><b th:text="${#numbers.formatDecimal(totaleapagare,1,'POINT',2,'COMMA')} + ' €'"></b></td>
      </tr>
 
 
 
  </table>
-
 
 
 

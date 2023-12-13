@@ -29,7 +29,8 @@ public class AmministrazioneController {
 
     @GetMapping("checklogin")
     public Utente checklogin(){
-        return authenticationService.getcurrentauthentication();
+        Utente result = authenticationService.getcurrentauthentication();
+        return result;
     }
 
     @PostMapping("rimuovi")
@@ -45,7 +46,7 @@ public class AmministrazioneController {
 
     @PostMapping("creautente")
     public List<Utente> creautente(@RequestBody Utente utente){
-        return creautente(utente.getUsername(),utente.getPassword(),utente.getRuolo());
+        return utenteService.creautente(utente);
     }
 
 }

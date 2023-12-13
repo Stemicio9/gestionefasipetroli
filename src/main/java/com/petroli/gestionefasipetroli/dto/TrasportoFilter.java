@@ -13,6 +13,8 @@ public class TrasportoFilter {
 
     private Date data;
 
+    private Date datafine;
+
     public Atk getAtk() {
         return atk;
     }
@@ -25,6 +27,10 @@ public class TrasportoFilter {
         return baseDiCarico;
     }
 
+    public Date getDatafine() {
+        return datafine;
+    }
+
     public void setAtk(Atk atk) {
         this.atk = atk;
     }
@@ -35,5 +41,9 @@ public class TrasportoFilter {
 
     public void setBaseDiCarico(BaseDiCarico baseDiCarico) {
         this.baseDiCarico = baseDiCarico;
+    }
+
+    public void setDatafine(Date datafine) {
+        this.datafine = datafine;
     }
 }

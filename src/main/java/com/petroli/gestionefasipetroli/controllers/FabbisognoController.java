@@ -1,6 +1,7 @@
 package com.petroli.gestionefasipetroli.controllers;
 
 import com.petroli.gestionefasipetroli.dto.DateRange;
+import com.petroli.gestionefasipetroli.entities.Cliente;
 import com.petroli.gestionefasipetroli.entities.Fabbisogno;
 import com.petroli.gestionefasipetroli.entities.Preventivo;
 import com.petroli.gestionefasipetroli.entities.Trasporto;
@@ -36,6 +37,11 @@ public class FabbisognoController {
         return fabbisognoService.getallfabbisogni();
     }
 
+    @PostMapping("getmieifabbisogni")
+    public List<Fabbisogno> getmieifabbisogni(@RequestBody Cliente cliente){
+        return fabbisognoService.getmieifabbisogni(cliente);
+    }
+
     @PostMapping("getallindaterange")
     public List<Fabbisogno> getallfabbisogniindaterange(@RequestBody DateRange range) {
         return fabbisognoService.getindaterange(range);
@@ -48,7 +54,14 @@ public class FabbisognoController {
 
     @PostMapping("aggiungi")
     public List<Fabbisogno> aggiungifabbisogno(@RequestBody Fabbisogno fabbisogno){
-        return fabbisognoService.aggiungifabbisogno(fabbisogno);
+        List<Fabbisogno> result =  fabbisognoService.aggiungifabbisogno(fabbisogno);
+        return result;
+    }
+
+    @PostMapping("aggiungilatocliente")
+    public List<Fabbisogno> aggiungifabbisognolatocliente(@RequestBody Fabbisogno fabbisogno){
+        List<Fabbisogno> result =  fabbisognoService.aggiungifabbisognolatocliente(fabbisogno);
+        return result;
     }
 
     @PostMapping("elimina")

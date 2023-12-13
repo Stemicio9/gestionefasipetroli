@@ -32,6 +32,19 @@ public class UtenteService {
         }
     }
 
+    public List<Utente> creautente(Utente utente){
+        String passwordencoded = encoder.encode(utente.getPassword());
+        utente.setPasswordinchiaro(utente.getPassword());
+        utente.setPassword(passwordencoded);
+        try{
+            utenteRepository.save(utente);
+            return getallutenti();
+        }catch(Exception e){
+            e.printStackTrace();
+            return getallutenti();
+        }
+    }
+
 
     public List<Utente> getallutenti(){
         return utenteRepository.findAll();

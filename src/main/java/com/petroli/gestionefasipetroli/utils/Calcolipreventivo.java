@@ -32,13 +32,17 @@ public class Calcolipreventivo {
     }
 
     public boolean stessogiorno(Date date1, Date date2) {
-        Calendar calendar1 = Calendar.getInstance();
-        calendar1.setTime(date1);
-        Calendar calendar2 = Calendar.getInstance();
-        calendar2.setTime(date2);
-        return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR)
-                && calendar1.get(Calendar.MONTH) == calendar2.get(Calendar.MONTH)
-                && calendar1.get(Calendar.DAY_OF_MONTH) == calendar2.get(Calendar.DAY_OF_MONTH);
+        try {
+            Calendar calendar1 = Calendar.getInstance();
+            calendar1.setTime(date1);
+            Calendar calendar2 = Calendar.getInstance();
+            calendar2.setTime(date2);
+            return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR)
+                    && calendar1.get(Calendar.MONTH) == calendar2.get(Calendar.MONTH)
+                    && calendar1.get(Calendar.DAY_OF_MONTH) == calendar2.get(Calendar.DAY_OF_MONTH);
+        }catch(Exception e){
+            return false;
+        }
     }
 
 
@@ -62,6 +66,9 @@ public class Calcolipreventivo {
         result.setDatabonifico(riepilogo.getDatabonifico());
         result.setImportobonifico(riepilogo.getImportobonifico());
 
+        result.setListabonifici(riepilogo.getListabonifici());
+        result.setFiles(riepilogo.getFiles());
+
         result.setTotalevolumicarburantitradizionali(totalevolumicarburantitradizionali(riepilogo.getFabbisogno()));
 
         QuotazioneGiornaliera curr = getquotazionegiornalieradifornitore(riepilogo.getFabbisogno().getFornitore(),riepilogo.getFabbisogno().getData());
@@ -70,12 +77,6 @@ public class Calcolipreventivo {
 
 
         if(curr != null) {
-
-            System.out.println("QUOTAZIONI");
-            System.out.println(curr.getPrezzogasolio());
-            System.out.println(curr.getPrezzobenzina());
-            System.out.println(curr.getPrezzosupreme());
-            System.out.println(curr.getPrezzogpl());
 
             result.setPrezzogasoliofornitore(curr.getPrezzogasolio());
             result.setPrezzobenzinafornitore(curr.getPrezzobenzina());
@@ -90,9 +91,13 @@ public class Calcolipreventivo {
 
         result.setImportofatturafornitore(getimportofatturafornitore(riepilogo.getFabbisogno()));
         if(riepilogo.getFabbisogno().isPreventivoesistente()) {
-            result.setImportofattura(importopreventivo(riepilogo.getPreventivo()));
+            result.setImportofattura(importofattura(riepilogo.getPreventivo()));
             result.setImportopreventivo(importopreventivo(riepilogo.getPreventivo()));
-            result.setResiduodaversare(residuodaversare(riepilogo.getImportobonifico(),riepilogo.getPreventivo()));
+
+
+          //  result.setResiduodaversare(residuodaversare(riepilogo.getImportobonifico(),riepilogo.getPreventivo()));
+            result.setResiduodaversare(residuodaversareconlista(riepilogo.getListabonifici(),riepilogo.getPreventivo()));
+
         }
         return result;
     }
@@ -106,8 +111,20 @@ public class Calcolipreventivo {
         return CALCOLA_TOTALE_PREVENTIVO(preventivo);
     }
 
+    public double importofattura(Preventivo preventivo){
+        return CALCOLA_IMPORTO_FATTURA(preventivo);
+    }
+
     public double residuodaversare(double importobonifico, Preventivo preventivo){
         return importopreventivo(preventivo)-importobonifico;
+    }
+
+    public double residuodaversareconlista(List<Bonifico> listabonifici, Preventivo preventivo){
+        double versato = 0;
+        for(Bonifico b: listabonifici){
+            versato += b.getImportobonifico();
+        }
+        return importopreventivo(preventivo) - versato;
     }
 
     public double getimportofatturafornitore(Fabbisogno fabbisogno){
@@ -122,6 +139,20 @@ public class Calcolipreventivo {
             double preventivoprimadellevocidirettifica = calcolatotalepreventivo(prendirighepreventivo(preventivo, cliente));
             preventivoprimadellevocidirettifica = arrotondavalore(preventivoprimadellevocidirettifica);
             return toglivocidirettifica(preventivo,preventivoprimadellevocidirettifica);
+        }catch (Exception e){
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+
+    public double CALCOLA_IMPORTO_FATTURA(Preventivo preventivo){
+        try {
+            PuntoVendita puntoVendita = preventivo.getRiferimento().getPuntoVendita();
+            Cliente cliente = puntiVenditaService.cercaproprietario(puntoVendita);
+            double preventivoprimadellevocidirettifica = calcolatotalepreventivo(prendirighepreventivo(preventivo, cliente));
+            preventivoprimadellevocidirettifica = arrotondavalore(preventivoprimadellevocidirettifica);
+            return preventivoprimadellevocidirettifica;
         }catch (Exception e){
             e.printStackTrace();
             return 0;
@@ -172,13 +203,15 @@ public class Calcolipreventivo {
 
     public List<RigaPerCalcolo> prendirighepreventivo(Preventivo preventivo, Cliente cliente){
         List<RigaPerCalcolo> listarighe = new LinkedList<>();
-
         RigaPerCalcolo riga = new RigaPerCalcolo();
-
         double prezzolitro;
 
         if(preventivo.getRiferimento().getGasolio() > 0){
-            prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicogasolioself(), cliente.getMarginegasolioself(), preventivo.getMarginecessionegasolio());
+            if(preventivo.getRiferimento().getPuntoVendita().isAllservito()){
+                prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicogasolioservito(), cliente.getMarginegasolioservito(), preventivo.getMarginecessionegasolio());
+            }else{
+                prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicogasolioself(), cliente.getMarginegasolioself(), preventivo.getMarginecessionegasolio());
+            }
             prezzolitro = arrotondaallaterzacifra(prezzolitro);
             riga.prezzolitro = arrotondaallaterzacifra(prezzolitro);
             riga.qta = preventivo.getRiferimento().getGasolio();
@@ -189,7 +222,11 @@ public class Calcolipreventivo {
         }
 
         if(preventivo.getRiferimento().getBenzina() > 0){
-            prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicobenzinaself(), cliente.getMarginebenzinaself(), preventivo.getMarginecessionebenzina());
+            if(preventivo.getRiferimento().getPuntoVendita().isAllservito()){
+                prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicobenzinaservito(), cliente.getMarginebenzinaservito(), preventivo.getMarginecessionebenzina());
+            }else{
+                prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicobenzinaself(), cliente.getMarginebenzinaself(), preventivo.getMarginecessionebenzina());
+            }
             prezzolitro = arrotondaallaterzacifra(prezzolitro);
             riga.prezzolitro = arrotondaallaterzacifra(prezzolitro);
             riga.qta = preventivo.getRiferimento().getBenzina();
@@ -200,7 +237,11 @@ public class Calcolipreventivo {
         }
 
         if(preventivo.getRiferimento().getSupreme() > 0){
-            prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicosupremeself(), cliente.getMarginesupremeself(), preventivo.getMarginecessionesupreme());
+            if(preventivo.getRiferimento().getPuntoVendita().isAllservito()){
+                prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicosupremeservito(), cliente.getMarginesupremeservito(), preventivo.getMarginecessionesupreme());
+            }else{
+                prezzolitro = calcolaprezzodivendita(preventivo.getPrezzoalpubblicosupremeself(), cliente.getMarginesupremeself(), preventivo.getMarginecessionesupreme());
+            }
             prezzolitro = arrotondaallaterzacifra(prezzolitro);
             riga.prezzolitro = arrotondaallaterzacifra(prezzolitro);
             riga.qta = preventivo.getRiferimento().getSupreme();
