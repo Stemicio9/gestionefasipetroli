@@ -62,6 +62,8 @@ public class QuotazioneGiornalieraPuntoVendita {
     private double altrocostogpl;
 
 
+
+
     @OneToOne
     private QuotazioneGiornaliera quotazionefornitore;
 
